@@ -7,7 +7,7 @@
 (* Targets:                                    *)
 (*   WIN32 GUI application                     *)
 (*                                             *)
-(* VBXE Atari version by Tebe/Madteam          *)
+(* VBXE Atari version 1.1 by Tebe/Madteam      *)
 (*                                             *)
 (***********************************************)
 
@@ -16,11 +16,6 @@ program Tetris;
 {$r tetris_vbxe.rc}
 
 uses crt, atari, sysutils, graph, vbxe, joystick;
-
-type
-
- hBitMap = array [0..255] of byte;
- hBrush = array [0..7] of byte;
 
 const
 
@@ -87,12 +82,21 @@ Tetromino: array [0..27, 0..7] of shortint =
    ( 0, -1,  1, -1,  0,  0,  0,  1));
 
 
+procedure vbxe_window_on; assembler;
+asm
+ fxs FX_MEMS #$80
+end;
+
+procedure vbxe_window_off; assembler;
+asm
+ fxs FX_MEMS #$00
+end;
+
+
 procedure BitBlt(XDest, YDest: word; XSrc: byte);
 begin
 
- asm
-   fxs FX_MEMS #$80
- end;
+ vbxe_window_on;
 
  hlp:=blocks + XSrc;
 
@@ -112,9 +116,7 @@ begin
 
  blt.blt_and_mask:=$ff;
 
- asm
-   fxs FX_MEMS #$00
- end;
+ vbxe_window_off;
 
  RunBCB(blt);
  while BlitterBusy do;
@@ -125,9 +127,7 @@ end;
 procedure PutBitmap(X, Y: word; DX, DY, Offset: byte; ID: byte);
 begin
 
- asm
-   fxs FX_MEMS #$80
- end;
+ vbxe_window_on;
 
  hlp:=bmp;
 
@@ -147,9 +147,7 @@ begin
 
  blt.blt_and_mask:=$ff;
 
- asm
-   fxs FX_MEMS #$00
- end;
+ vbxe_window_off;
 
  RunBCB(blt);
  while BlitterBusy do;
@@ -160,9 +158,7 @@ end;
 procedure ClearArea(X, Y: word; DX, DY: byte; clr: Boolean);
 begin
 
- asm
-   fxs FX_MEMS #$80
- end;
+ vbxe_window_on;
 
  hlp:=bmp + X + (Y-88)*320;
 
@@ -185,9 +181,7 @@ begin
  else
   blt.blt_and_mask:=$ff;
 
- asm
-   fxs FX_MEMS #$00
- end;
+ vbxe_window_off;
 
  RunBCB(blt);
  while BlitterBusy do;
@@ -198,9 +192,7 @@ end;
 procedure DrawBox(X, Y: word);
 begin
 
- asm
-   fxs FX_MEMS #$80
- end;
+ vbxe_window_on;
 
  hlp:=bmp + X + (Y-88)*320;
 
@@ -220,9 +212,7 @@ begin
 
  blt.blt_and_mask:=$ff;
 
- asm
-   fxs FX_MEMS #$00
- end;
+ vbxe_window_off;
 
  RunBCB(blt);
  while BlitterBusy do;
@@ -383,7 +373,7 @@ begin
 
              X := X - 1;
              for i := 0 to 3 do
-               if (shortint(Tetromino[Figure, byte(2 * i)] + X) < 0) or
+               if (Tetromino[Figure, byte(2 * i)] + X < 0) or
                   (GridS[byte(Tetromino[Figure, byte(2 * i + 1)] + Y), byte(Tetromino[Figure, byte(2 * i)] + X)] = 1)
                then
                  X := X + 1;
@@ -396,7 +386,7 @@ begin
 
              X := X + 1;
              for i := 0 to 3 do
-               if (shortint(Tetromino[Figure, byte(2 * i)] + X) > 9) or
+               if (Tetromino[Figure, byte(2 * i)] + X > 9) or
                   (GridS[byte(Tetromino[Figure, byte(2 * i + 1)] + Y), byte(Tetromino[Figure, byte(2 * i)] + X)] = 1)
                then
                  X := X - 1;
@@ -410,8 +400,8 @@ begin
              Figure := Figure + 1;
              if Figure mod 4 = 0 then Figure := Figure - 4;
              for i := 0 to 3 do
-               if (shortint(Tetromino[Figure, byte(2 * i)] + X) < 0) or (shortint(Tetromino[Figure, byte(2 * i)] + X) > 9) or
-                  (shortint(Tetromino[Figure, byte(2 * i + 1)] + Y) < 0) or (shortint(Tetromino[Figure, byte(2 * i + 1)] + Y) > 19) or
+               if (Tetromino[Figure, byte(2 * i)] + X < 0) or (Tetromino[Figure, byte(2 * i)] + X > 9) or
+                  (Tetromino[Figure, byte(2 * i + 1)] + Y < 0) or (Tetromino[Figure, byte(2 * i + 1)] + Y > 19) or
                   (GridS[byte(Tetromino[Figure, byte(2 * i + 1)] + Y), byte(Tetromino[Figure, byte(2 * i)] + X)] = 1)
                then
                  if Figure mod 4 = 0 then
@@ -583,14 +573,10 @@ begin
  dmactl:=0;
 
 
- asm
-  fxs FX_MEMS #$80
- end;
+ vbxe_window_on;
 
  fillByte(blt, sizeof(TBCB), 0);
 
-
- blt.dst_adr.byte2:=vram shr 16;
 
  blt.dst_step_y:=320;
 
@@ -603,10 +589,7 @@ begin
 
  blt.blt_and_mask:=$ff;
 
-
- asm
-  fxs FX_MEMS #$00
- end;
+ vbxe_window_off;
 
 
  pause;
@@ -689,7 +672,7 @@ begin
             Ok := 0;
             Y := Y + 1;
             for i := 0 to 3 do
-              if (shortint(Tetromino[Figure, byte(2 * i + 1)] + Y) > 19) or
+              if (Tetromino[Figure, byte(2 * i + 1)] + Y > 19) or
                  (GridS[byte(Tetromino[Figure, byte(2 * i + 1)] + Y), byte(Tetromino[Figure, byte(2 * i)] + X)] = 1)
             then
             begin
@@ -728,6 +711,7 @@ begin
         GridS[byte(Tetromino[Figure, byte(2 * i + 1)] + Y), byte(Tetromino[Figure, byte(2 * i)] + X)] := 1;
         GridN[byte(Tetromino[Figure, byte(2 * i + 1)] + Y), byte(Tetromino[Figure, byte(2 * i)] + X)] := Figure;
       end;
+
       for i := 0 to 3 do
         if shortint(Tetromino[Figure, byte(2 * i + 1)] + Y) = 1 then Ok := 1;
 
