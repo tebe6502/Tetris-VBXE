@@ -7,7 +7,8 @@
 (* Targets:                                    *)
 (*   WIN32 GUI application                     *)
 (*                                             *)
-(* VBXE Atari version 1.1 by Tebe/Madteam      *)
+(* VBXE Atari version 1.3 by Tebe/Madteam      *)
+(* 2026-05-03                                  *)
 (*                                             *)
 (***********************************************)
 
@@ -23,6 +24,8 @@ const
   bmp = $030000;
   
   blocks = bmp + 320*240;
+  
+  ver = 'v1.3';
 
 var
   vbxe_ram: TVBXEMemoryStream;
@@ -35,7 +38,7 @@ var
 
   Xp, Yp: Word;
   
-  OldX, OldY, X, Y: shortint;
+  OldX, OldY, X, Y: byte;
   
   i, Ok, StoreLines, Level: Byte;
   Figure, FigureA, FigureB, OldNo: Byte;
@@ -355,7 +358,7 @@ begin
 
      inc(joy_delay);
 
-     if joy_delay <  400 - 30 * (Level mod 10) then exit;
+     if joy_delay <  word(400 - 30 * (Level mod 10)) then exit;
     
     end;
     
@@ -367,7 +370,7 @@ begin
     case joy of
     
       joy_left:
-           begin
+           if X > 0 then begin
       
              isPaused;
 
@@ -495,13 +498,26 @@ begin
 end;
 
 
+function Randomizer: Byte;
+var history: byte;
+begin
+
+ While Result = history do Result := 4 * Random(7);
+ 
+ history := Result;
+  
+end;
+
+
 procedure InitGame;
 begin
+  Randomize;
+
   Level := 0;	// 0..9
   Score := 0;
   Lines := 0;
   StoreLines := 0;
-  Randomize;
+
   Ok := 0;
   FillChar(GridS, SizeOf(GridS), 0);
   FillChar(GridN, SizeOf(GridN), 0);
@@ -510,6 +526,7 @@ begin
   AutoLevel := TRUE;
   ColoredFigures := TRUE;
 
+  FigureA := Randomizer;
 
   PutBitmap(178, 8, 176, 113, 176 * SlideNo, 2); 
   DrawGrid;
@@ -532,7 +549,11 @@ begin
   ClearArea(29*8, 88+88+64, 8*8, 16, true);
   vbxe.TextOut(29*8, 88+64, 'Lines:');
 
-  vbxe.TextOut(30*8, 29*8, 'Mad Pascal');
+
+  vbxe.TextOut(29*8, 26*8, 'TETRIS VBXE');
+  vbxe.TextOut(33*8-4, 27*8, ver);
+
+  vbxe.TextOut(30*8-4, 29*8, 'Mad Pascal');
 
   Status;
   
@@ -610,17 +631,6 @@ begin
  end;
 }
 
-end;
-
-
-function Randomizer: Byte;
-var history: byte;
-begin
-
- While Result = history do Result := 4 * Random(7);
- 
- history := Result;
- 
 end;
 
 
@@ -704,6 +714,7 @@ begin
 
       until Ok = 1;
 
+
       Score := Score + 15 + 5 * (Level mod 10);
       Ok := 0;
       for i := 0 to 3 do
@@ -729,4 +740,5 @@ begin
     //if Ok = 1 then ExitGame;
 
   until FALSE;
+
 end.
