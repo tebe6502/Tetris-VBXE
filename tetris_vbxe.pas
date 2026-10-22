@@ -8,7 +8,7 @@
 (*   WIN32 GUI application                     *)
 (*                                             *)
 (* VBXE Atari version 1.3 by Tebe/Madteam      *)
-(* 2026-05-03                                  *)
+(* 2026-10-22                                  *)
 (*                                             *)
 (***********************************************)
 
@@ -16,7 +16,7 @@ program Tetris;
 
 {$r tetris_vbxe.rc}
 
-uses crt, atari, sysutils, graph, vbxe, joystick;
+uses atari, sysutils, vbxe, joystick;
 
 const
 
@@ -25,7 +25,7 @@ const
   
   blocks = bmp + 320*240;
   
-  ver = 'v1.3';
+  ver = 'v1.4';
 
 var
   vbxe_ram: TVBXEMemoryStream;
@@ -592,6 +592,7 @@ begin
  vbxe_ram.clear;
 
  dmactl:=0;
+ sdmctl:=0;
 
 
  vbxe_window_on;
@@ -612,24 +613,7 @@ begin
 
  vbxe_window_off;
 
-
  pause;
-
-{
- asm
-  sei
-  lda #0
-  sta nmien
-  sta irqen
-
-  lda #$fe
-  sta portb
-
-  mwa #NMI $fffa
-
-  mva #$40 nmien
- end;
-}
 
 end;
 
@@ -644,9 +628,10 @@ begin
     repeat
     
       X := 4;
-      Y := 1;
-      OldX := 4;
-      OldY := 1;
+      OldX := X;
+      Y := 4;
+      OldY := Y;
+
       DelayVal := 34 - 3 * (Level mod 10);
 
 
@@ -742,3 +727,5 @@ begin
   until FALSE;
 
 end.
+
+// 93437
