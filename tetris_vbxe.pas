@@ -709,10 +709,11 @@ begin
       end;
 
       for i := 0 to 3 do
-        if shortint(Tetromino[Figure, byte(2 * i + 1)] + Y) = 1 then Ok := 1;
+        if shortint(Tetromino[Figure, byte(2 * i + 1)] + Y) = 2 then Ok := 1;
 
       EraseLines;
       Status;
+
     until Ok = 1;
 
 
@@ -728,4 +729,4 @@ begin
 
 end.
 
-// 93437
+// 93431
